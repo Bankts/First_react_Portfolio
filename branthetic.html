@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Branthetic — Systems-Driven Design Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Söhne:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── RESET & BASE ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #1D27C1;
+      --blue-mid: #2C38D4;
+      --blue-pale: #E8EAFF;
+      --blue-dim: rgba(29,39,193,0.08);
+      --ink: #0C0C0F;
+      --ink-mid: #3A3A42;
+      --ink-light: #7A7A88;
+      --rule: #E0E0E6;
+      --cream: #F9F9FB;
+      --white: #FFFFFF;
+      --font-display: 'DM Serif Display', Georgia, serif;
+      --font-body: 'Söhne', 'Helvetica Neue', Helvetica, sans-serif;
+      --font-mono: 'DM Mono', 'Courier New', monospace;
+      --max: 1200px;
+      --pad: clamp(24px, 5vw, 80px);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      color: var(--ink-mid);
+      background: var(--white);
+      font-size: 16px;
+      line-height: 1.7;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ── CUSTOM CURSOR ──────────────────────────────────────────── */
+    .cursor {
+      position: fixed;
+      width: 10px; height: 10px;
+      background: var(--blue);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s, width 0.3s, height 0.3s, background 0.3s;
+      mix-blend-mode: multiply;
+    }
+    .cursor-ring {
+      position: fixed;
+      width: 36px; height: 36px;
+      border: 1.5px solid var(--blue);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform 0.18s ease-out, width 0.3s, height 0.3s, opacity 0.3s;
+      opacity: 0.5;
+    }
+
+    /* ── SCROLL REVEAL ──────────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.7s cubic-bezier(.16,1,.3,1), transform 0.7s cubic-bezier(.16,1,.3,1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-d1 { transition-delay: 0.1s; }
+    .reveal-d2 { transition-delay: 0.2s; }
+    .reveal-d3 { transition-delay: 0.3s; }
+    .reveal-d4 { transition-delay: 0.4s; }
+
+    /* ── LAYOUT ─────────────────────────────────────────────────── */
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--pad); }
+    section { padding: 120px 0; }
+    section + section { border-top: 1px solid var(--rule); }
+
+    /* ── NAV ────────────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--rule);
+      transition: box-shadow 0.3s;
+    }
+    nav.scrolled { box-shadow: 0 2px 24px rgba(0,0,0,0.06); }
+    .nav-inner {
+      max-width: var(--max); margin: 0 auto;
+      padding: 0 var(--pad);
+      height: 68px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      color: var(--blue);
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+    .nav-links {
+      display: flex; gap: 40px; list-style: none;
+    }
+    .nav-links a {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--ink-mid);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--blue); }
+    .nav-cta {
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 22px;
+      background: var(--blue);
+      color: #fff;
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: background 0.2s;
+    }
+    .nav-cta:hover { background: var(--blue-mid); }
+
+    /* ── HERO ───────────────────────────────────────────────────── */
+    #hero {
+      padding: 180px 0 120px;
+      border-top: none;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-grid-bg {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(var(--rule) 1px, transparent 1px),
+        linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+      background-size: 80px 80px;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .hero-stripe {
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 4px; background: var(--blue);
+    }
+    .hero-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      color: var(--blue);
+      text-transform: uppercase;
+      margin-bottom: 32px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .hero-label::before {
+      content: '';
+      display: block; width: 32px; height: 1px; background: var(--blue);
+    }
+    .hero-headline {
+      font-family: var(--font-display);
+      font-size: clamp(52px, 7vw, 96px);
+      line-height: 1.04;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+      max-width: 820px;
+      margin-bottom: 8px;
+    }
+    .hero-headline em {
+      font-style: italic;
+      color: var(--blue);
+    }
+    .hero-sub {
+      font-size: clamp(16px, 2vw, 19px);
+      color: var(--ink-mid);
+      max-width: 560px;
+      margin: 32px 0 48px;
+      line-height: 1.65;
+    }
+    .hero-actions { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--blue);
+      color: #fff;
+      padding: 16px 32px;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .btn-primary:hover { background: var(--blue-mid); transform: translateY(-1px); }
+    .btn-primary svg { width: 14px; height: 14px; }
+    .btn-secondary {
+      font-size: 14px;
+      color: var(--ink-mid);
+      text-decoration: none;
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .btn-secondary:hover { color: var(--blue); border-color: var(--blue); }
+    .hero-stats {
+      display: flex; gap: 48px; flex-wrap: wrap;
+      margin-top: 80px;
+      padding-top: 48px;
+      border-top: 1px solid var(--rule);
+    }
+    .stat-item {}
+    .stat-num {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--blue);
+      letter-spacing: 0.06em;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--ink-light);
+      letter-spacing: 0.04em;
+      margin-top: 4px;
+    }
+
+    /* ── WHO WE SERVE ───────────────────────────────────────────── */
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--blue);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-label::before {
+      content: '';
+      display: block; width: 24px; height: 1px; background: var(--blue);
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 4.5vw, 60px);
+      color: var(--ink);
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+    .section-intro {
+      font-size: 17px;
+      color: var(--ink-mid);
+      max-width: 560px;
+      line-height: 1.7;
+      margin-bottom: 64px;
+    }
+    .serve-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border: 1px solid var(--rule);
+    }
+    .serve-card {
+      padding: 48px 40px;
+      border-right: 1px solid var(--rule);
+      position: relative;
+      transition: background 0.3s;
+    }
+    .serve-card:last-child { border-right: none; }
+    .serve-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 3px; background: var(--blue);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.4s cubic-bezier(.16,1,.3,1);
+    }
+    .serve-card:hover { background: var(--cream); }
+    .serve-card:hover::before { transform: scaleX(1); }
+    .serve-num {
+      font-family: var(--font-mono);
+      font-size: 11px; color: var(--blue);
+      letter-spacing: 0.15em; margin-bottom: 24px;
+    }
+    .serve-title {
+      font-size: 15px; font-weight: 600;
+      color: var(--ink); letter-spacing: 0.02em;
+      margin-bottom: 16px; line-height: 1.3;
+    }
+    .serve-desc { font-size: 14px; color: var(--ink-light); line-height: 1.7; }
+    .serve-quote {
+      margin-top: 64px;
+      padding: 40px 48px;
+      background: var(--blue-dim);
+      border-left: 3px solid var(--blue);
+      font-family: var(--font-display);
+      font-size: clamp(20px, 2.5vw, 28px);
+      color: var(--ink);
+      font-style: italic;
+      line-height: 1.4;
+    }
+
+    /* ── SERVICES ───────────────────────────────────────────────── */
+    #services { background: var(--ink); }
+    #services .section-label { color: rgba(255,255,255,0.4); }
+    #services .section-label::before { background: rgba(255,255,255,0.3); }
+    #services .section-title { color: #fff; }
+    #services .section-intro { color: rgba(255,255,255,0.5); }
+    .services-list { display: flex; flex-direction: column; }
+    .service-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 1fr;
+      gap: 0;
+      padding: 56px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      align-items: start;
+      cursor: default;
+      transition: background 0.3s;
+    }
+    .service-row:last-child { border-bottom: none; }
+    .service-row:hover { background: rgba(255,255,255,0.02); }
+    .service-row:first-child { border-top: 1px solid rgba(255,255,255,0.1); }
+    .service-index {
+      font-family: var(--font-mono);
+      font-size: 12px; color: rgba(255,255,255,0.25);
+      padding-top: 6px;
+    }
+    .service-name {
+      font-family: var(--font-display);
+      font-size: clamp(24px, 3vw, 38px);
+      color: #fff; line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+    .service-detail { padding-left: 40px; }
+    .service-desc { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.75; margin-bottom: 24px; }
+    .service-scope {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: rgba(29,39,193,0.9);
+      letter-spacing: 0.08em;
+      line-height: 2;
+    }
+    .service-scope strong { color: rgba(255,255,255,0.3); letter-spacing: 0.12em; display: block; margin-bottom: 8px; }
+
+    /* ── CASE STUDIES ───────────────────────────────────────────── */
+    .cases-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background: var(--rule);
+    }
+    .case-card {
+      background: var(--white);
+      padding: 56px 48px;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s;
+    }
+    .case-card:hover { background: var(--cream); }
+    .case-card::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 2px; background: var(--blue);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.5s cubic-bezier(.16,1,.3,1);
+    }
+    .case-card:hover::after { transform: scaleX(1); }
+    .case-num {
+      font-family: var(--font-mono);
+      font-size: 11px; color: var(--blue);
+      letter-spacing: 0.15em; margin-bottom: 12px;
+    }
+    .case-tag {
+      font-size: 11px;
+      color: var(--ink-light);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .case-name {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 3vw, 40px);
+      color: var(--ink); letter-spacing: -0.02em;
+      line-height: 1.1; margin-bottom: 20px;
+    }
+    .case-desc { font-size: 14px; color: var(--ink-mid); line-height: 1.75; margin-bottom: 28px; }
+    .case-deliverables {
+      font-family: var(--font-mono);
+      font-size: 11px; color: var(--blue);
+      letter-spacing: 0.05em; line-height: 2;
+    }
+    .case-deliverables strong { color: var(--ink-light); display: block; margin-bottom: 6px; }
+
+    /* ── AUTHORITY ──────────────────────────────────────────────── */
+    #authority { background: var(--cream); }
+    .authority-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 0;
+      border: 1px solid var(--rule);
+      margin-bottom: 80px;
+    }
+    .auth-cell {
+      padding: 48px 36px;
+      border-right: 1px solid var(--rule);
+    }
+    .auth-cell:last-child { border-right: none; }
+    .auth-num {
+      font-family: var(--font-display);
+      font-size: clamp(48px, 5vw, 72px);
+      color: var(--blue);
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+    .auth-desc { font-size: 13px; color: var(--ink-light); line-height: 1.65; }
+    .authority-copy {
+      max-width: 700px;
+      font-size: 17px;
+      color: var(--ink-mid);
+      line-height: 1.75;
+      font-style: italic;
+    }
+
+    /* ── PROCESS ────────────────────────────────────────────────── */
+    .process-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    .process-step {
+      padding: 56px 48px;
+      border: 1px solid var(--rule);
+      margin: -1px 0 0 -1px;
+      position: relative;
+      transition: background 0.3s;
+    }
+    .process-step:hover { background: var(--cream); z-index: 1; }
+    .step-num {
+      font-family: var(--font-mono);
+      font-size: 11px; color: var(--blue);
+      letter-spacing: 0.15em; margin-bottom: 16px;
+    }
+    .step-title {
+      font-size: 15px; font-weight: 600;
+      color: var(--ink); letter-spacing: 0.03em;
+      text-transform: uppercase; margin-bottom: 16px;
+    }
+    .step-desc { font-size: 14px; color: var(--ink-mid); line-height: 1.75; }
+    .process-note {
+      margin-top: 56px;
+      padding: 32px 40px;
+      background: var(--blue);
+      font-size: 15px;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.7;
+    }
+    .process-note strong { color: #fff; }
+
+    /* ── OBJECTIONS ─────────────────────────────────────────────── */
+    .objection-list { display: flex; flex-direction: column; }
+    .objection {
+      padding: 48px 0;
+      border-bottom: 1px solid var(--rule);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+    }
+    .objection:first-child { border-top: 1px solid var(--rule); }
+    .obj-q {
+      font-family: var(--font-display);
+      font-size: clamp(18px, 2vw, 24px);
+      color: var(--ink); line-height: 1.3;
+      font-style: italic;
+    }
+    .obj-a { font-size: 14px; color: var(--ink-mid); line-height: 1.8; }
+
+    /* ── FINAL CTA ──────────────────────────────────────────────── */
+    #cta { background: var(--ink); padding: 160px 0; }
+    .cta-label { color: rgba(255,255,255,0.3); }
+    .cta-label::before { background: rgba(255,255,255,0.2); }
+    .cta-headline {
+      font-family: var(--font-display);
+      font-size: clamp(40px, 5.5vw, 80px);
+      color: #fff; line-height: 1.06;
+      letter-spacing: -0.02em;
+      max-width: 800px; margin-bottom: 24px;
+    }
+    .cta-headline em { color: rgba(255,255,255,0.4); font-style: italic; }
+    .cta-sub { font-size: 16px; color: rgba(255,255,255,0.45); max-width: 520px; line-height: 1.7; margin-bottom: 56px; }
+    .cta-scarcity {
+      font-family: var(--font-mono);
+      font-size: 11px; color: rgba(255,255,255,0.3);
+      letter-spacing: 0.15em; text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+    .btn-primary-white {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: #fff;
+      color: var(--blue);
+      padding: 18px 36px;
+      font-size: 14px; font-weight: 600;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .btn-primary-white:hover { background: var(--blue-pale); transform: translateY(-1px); }
+
+    /* ── CONTACT FORM ───────────────────────────────────────────── */
+    #contact { background: var(--cream); }
+    .form-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 80px;
+      align-items: start;
+    }
+    .form-left {}
+    .form-context {
+      font-size: 14px; color: var(--ink-light);
+      line-height: 1.75; margin-bottom: 32px;
+    }
+    .form-mandate {
+      font-family: var(--font-mono);
+      font-size: 11px; color: var(--blue);
+      letter-spacing: 0.1em; line-height: 2;
+    }
+    form { display: flex; flex-direction: column; gap: 0; }
+    .form-field { margin-bottom: 36px; }
+    .form-field label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 10px; font-weight: 500;
+      letter-spacing: 0.2em; color: var(--ink);
+      text-transform: uppercase; margin-bottom: 10px;
+    }
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      width: 100%;
+      background: transparent;
+      border: none; border-bottom: 1.5px solid var(--rule);
+      padding: 12px 0;
+      font-family: var(--font-body);
+      font-size: 15px; color: var(--ink);
+      transition: border-color 0.2s;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .form-field input::placeholder,
+    .form-field textarea::placeholder { color: var(--ink-light); font-size: 14px; }
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus { border-bottom-color: var(--blue); }
+    .form-field textarea { resize: vertical; min-height: 80px; }
+    .form-field select { background: transparent; cursor: pointer; }
+    .radio-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .radio-opt {
+      display: flex; align-items: flex-start; gap: 12px;
+      font-size: 14px; color: var(--ink-mid);
+      cursor: pointer;
+    }
+    .radio-opt input[type="radio"] {
+      width: auto; border: none; padding: 0;
+      accent-color: var(--blue);
+      margin-top: 3px; cursor: pointer;
+    }
+    .radio-opt input[type="radio"]:focus { border-bottom: none; }
+    .checkbox-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .check-opt {
+      display: flex; align-items: flex-start; gap: 12px;
+      font-size: 14px; color: var(--ink-mid);
+      cursor: pointer;
+    }
+    .check-opt input[type="checkbox"] {
+      width: auto; border: none; padding: 0;
+      accent-color: var(--blue);
+      margin-top: 3px; cursor: pointer;
+    }
+    .budget-note {
+      font-size: 12px; color: var(--ink-light);
+      font-style: italic; margin-bottom: 10px;
+    }
+    .submit-btn {
+      width: 100%;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      padding: 18px 32px;
+      font-family: var(--font-body);
+      font-size: 14px; font-weight: 600;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+    .submit-btn:hover { background: var(--blue-mid); }
+    .form-response-note {
+      font-size: 12px; color: var(--ink-light);
+      font-style: italic; margin-top: 16px;
+      line-height: 1.6;
+    }
+
+    /* ── FOOTER ─────────────────────────────────────────────────── */
+    footer {
+      background: var(--ink);
+      padding: 64px 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .footer-inner {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 24px;
+    }
+    .footer-logo {
+      font-family: var(--font-mono);
+      font-size: 12px; font-weight: 500;
+      letter-spacing: 0.2em; color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+    }
+    .footer-copy {
+      font-size: 12px; color: rgba(255,255,255,0.2);
+      letter-spacing: 0.04em;
+    }
+    .footer-links { display: flex; gap: 32px; }
+    .footer-links a {
+      font-size: 12px; color: rgba(255,255,255,0.3);
+      text-decoration: none; letter-spacing: 0.04em;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: rgba(255,255,255,0.7); }
+
+    /* ── MOBILE ─────────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      section { padding: 80px 0; }
+      .serve-grid { grid-template-columns: 1fr; }
+      .serve-card { border-right: none; border-bottom: 1px solid var(--rule); }
+      .cases-grid { grid-template-columns: 1fr; }
+      .authority-grid { grid-template-columns: 1fr 1fr; }
+      .auth-cell:nth-child(2) { border-right: none; }
+      .process-grid { grid-template-columns: 1fr; }
+      .objection { grid-template-columns: 1fr; gap: 24px; }
+      .service-row { grid-template-columns: 48px 1fr; }
+      .service-detail { padding-left: 0; margin-top: 20px; grid-column: 1 / -1; }
+      .form-wrap { grid-template-columns: 1fr; gap: 48px; }
+      .nav-links { display: none; }
+      body { cursor: auto; }
+      .cursor, .cursor-ring { display: none; }
+    }
+    @media (max-width: 600px) {
+      .authority-grid { grid-template-columns: 1fr; }
+      .auth-cell { border-right: none; border-bottom: 1px solid var(--rule); }
+      .hero-stats { gap: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- ── NAV ──────────────────────────────────────────────────────── -->
+<nav id="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">Branthetic</a>
+    <ul class="nav-links">
+      <li><a href="#serve">Who We Serve</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#work">Work</a></li>
+      <li><a href="#process">Process</a></li>
+    </ul>
+    <a href="#contact" class="nav-cta">Start a Project</a>
+  </div>
+</nav>
+
+<!-- ── HERO ─────────────────────────────────────────────────────── -->
+<section id="hero">
+  <div class="hero-stripe"></div>
+  <div class="hero-grid-bg"></div>
+  <div class="wrap">
+    <p class="hero-label reveal">Lagos, Nigeria · Systems-Driven Design Studio</p>
+    <h1 class="hero-headline reveal reveal-d1">
+      We design operating systems<em> —</em><br>
+      not just interfaces.
+    </h1>
+    <p class="hero-sub reveal reveal-d2">
+      Branthetic partners with fintech companies, climate-tech ventures, and public institutions to design structured digital systems built to scale — not to impress.
+    </p>
+    <div class="hero-actions reveal reveal-d3">
+      <a href="#contact" class="btn-primary">
+        Schedule a Strategy Call
+        <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a href="#work" class="btn-secondary">View engagements</a>
+    </div>
+    <div class="hero-stats reveal reveal-d4">
+      <div class="stat-item">
+        <div class="stat-num">15+</div>
+        <div class="stat-label">Digital products delivered</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">₦3M – ₦15M+</div>
+        <div class="stat-label">Engagement range</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">70%</div>
+        <div class="stat-label">Institutional clientele</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">Fintech · Climate · Public Sector</div>
+        <div class="stat-label">Primary verticals</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── WHO WE SERVE ──────────────────────────────────────────────── -->
+<section id="serve">
+  <div class="wrap">
+    <p class="section-label reveal">Who We Serve</p>
+    <h2 class="section-title reveal reveal-d1">Built for organisations<br><em style="font-style:italic;color:var(--blue)">where design has consequence.</em></h2>
+    <p class="section-intro reveal reveal-d2">We work with a specific kind of organisation — one building something that must function at institutional scale, where design failure has operational consequence.</p>
+    <div class="serve-grid reveal reveal-d3">
+      <div class="serve-card">
+        <div class="serve-num">01</div>
+        <h3 class="serve-title">Fintech &amp; Financial Services</h3>
+        <p class="serve-desc">Product design and brand systems for lending platforms, payment infrastructure, and digital banking ventures where compliance, clarity, and trust are non-negotiable design requirements.</p>
+      </div>
+      <div class="serve-card">
+        <div class="serve-num">02</div>
+        <h3 class="serve-title">Climate Tech &amp; Energy Ventures</h3>
+        <p class="serve-desc">End-to-end digital systems for energy marketplaces, monitoring platforms, and climate-data products — where complexity must resolve into usable, scalable interfaces.</p>
+      </div>
+      <div class="serve-card">
+        <div class="serve-num">03</div>
+        <h3 class="serve-title">Public Institutions &amp; NGOs</h3>
+        <p class="serve-desc">Institutional brand architecture and strategic communications systems for government bodies, development organisations, and mission-driven entities that require structured, enduring design.</p>
+      </div>
+    </div>
+    <blockquote class="serve-quote reveal">
+      "If your organisation is building something that cannot afford to look provisional — we may be the right partner."
+    </blockquote>
+  </div>
+</section>
+
+<!-- ── SERVICES ──────────────────────────────────────────────────── -->
+<section id="services">
+  <div class="wrap">
+    <p class="section-label section-label reveal" style="color:rgba(255,255,255,0.35)">
+      <span style="display:block;width:24px;height:1px;background:rgba(255,255,255,0.25);flex-shrink:0"></span>
+      Core Services
+    </p>
+    <h2 class="section-title reveal reveal-d1" style="color:#fff;">Three disciplines.<br><span style="color:rgba(255,255,255,0.35);font-style:italic;">Each delivered as a complete system.</span></h2>
+    <p class="section-intro reveal reveal-d2" style="color:rgba(255,255,255,0.45);">Not a collection of deliverables — a structured system engineered from strategy through to documentation.</p>
+    <div class="services-list">
+      <div class="service-row reveal">
+        <div class="service-index">01</div>
+        <div class="service-name">Product Design<br>&amp; Engineering</div>
+        <div class="service-detail">
+          <p class="service-desc">We design and build the complete digital product: from architecture to interface to handoff. Our process is structured, documented, and engineered for scale. We do not ship wireframes — we ship systems.</p>
+          <div class="service-scope">
+            <strong>Engagement scope</strong>
+            Product strategy · Information architecture · UI/UX design · Component systems · Front-end engineering · Technical documentation
+          </div>
+        </div>
+      </div>
+      <div class="service-row reveal reveal-d1">
+        <div class="service-index">02</div>
+        <div class="service-name">Institutional<br>Brand Systems</div>
+        <div class="service-detail">
+          <p class="service-desc">We build brand architectures that function as operating manuals for an organisation's visual identity. Every decision is intentional, every element is documented. The result is not a logo — it is a scalable identity system with defined rules, voice, and governance.</p>
+          <div class="service-scope">
+            <strong>Engagement scope</strong>
+            Brand strategy · Naming · Visual identity · Brand guidelines · Communications templates · Tone-of-voice documentation
+          </div>
+        </div>
+      </div>
+      <div class="service-row reveal reveal-d2">
+        <div class="service-index">03</div>
+        <div class="service-name">Strategic<br>Advisory</div>
+        <div class="service-detail">
+          <p class="service-desc">For organisations navigating a complex design, product, or positioning challenge. This is not consulting — it is strategic thinking translated into clear, actionable frameworks scoped around your specific decision.</p>
+          <div class="service-scope">
+            <strong>Engagement scope</strong>
+            Product &amp; brand audit · Go-to-market design strategy · Design team structure · Decision-stage workshops
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CASE STUDIES ──────────────────────────────────────────────── -->
+<section id="work">
+  <div class="wrap">
+    <p class="section-label reveal">Featured Engagements</p>
+    <h2 class="section-title reveal reveal-d1">Four systems built<br><em style="font-style:italic;color:var(--blue)">for institutional scale.</em></h2>
+    <p class="section-intro reveal reveal-d2">Each engagement began with a strategic brief and closed with a deployed, documented, operational system.</p>
+  </div>
+  <div style="max-width:var(--max);margin:0 auto;padding:0 var(--pad);">
+    <div class="cases-grid">
+      <div class="case-card reveal">
+        <div class="case-num">01</div>
+        <div class="case-tag">Climate Tech · E-Commerce Infrastructure</div>
+        <h3 class="case-name">Solarcabal</h3>
+        <p class="case-desc">A complete digital commerce ecosystem for solar energy products across Nigeria — not a website, but a structured platform with product catalogue architecture, custom checkout and financing flows, and an operator-facing admin system. Built to support national distribution, not just initial launch traffic.</p>
+        <div class="case-deliverables">
+          <strong>Deliverables</strong>
+          End-to-end product design · E-commerce system engineering · Admin platform · Component library · Technical documentation
+        </div>
+      </div>
+      <div class="case-card reveal reveal-d1">
+        <div class="case-num">02</div>
+        <div class="case-tag">Fintech · Lending Platform</div>
+        <h3 class="case-name">BarakaPay</h3>
+        <p class="case-desc">A Shariah-compliant digital lending platform — a category where trust, regulatory clarity, and interface precision are existential product requirements. We designed a full product system: borrower onboarding, financing application flows, repayment management, and a compliance-facing dashboard. Every decision audited against UX best practice and Shariah financing principles.</p>
+        <div class="case-deliverables">
+          <strong>Deliverables</strong>
+          Product strategy · UX research · End-to-end product design · Compliance flow architecture · UI system
+        </div>
+      </div>
+      <div class="case-card reveal">
+        <div class="case-num">03</div>
+        <div class="case-tag">Service Marketplace · Platform Design</div>
+        <h3 class="case-name">SwiftClean</h3>
+        <p class="case-desc">A structured marketplace connecting service providers with household and commercial clients. The design challenge was systemic: two distinct user journeys needed to operate within a single coherent platform without friction at the point of connection. We designed a dual-interface system with intelligent booking logic and real-time job management.</p>
+        <div class="case-deliverables">
+          <strong>Deliverables</strong>
+          Dual-interface platform design · Marketplace architecture · Booking system UX · Provider onboarding · UI component library
+        </div>
+      </div>
+      <div class="case-card reveal reveal-d1">
+        <div class="case-num">04</div>
+        <div class="case-tag">GovTech · Geo-Analytical Survey System</div>
+        <h3 class="case-name">Plax v3</h3>
+        <p class="case-desc">A survey and geo-analytical intelligence system for large-scale structured data collection and geospatial analysis. We redesigned the product from the ground up — architecture, data flows, map interfaces, and reporting dashboards — to support enterprise-grade institutional deployment.</p>
+        <div class="case-deliverables">
+          <strong>Deliverables</strong>
+          Full product redesign · Survey flow design · Geospatial interface · Analytics dashboards · Design-to-engineering handoff
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── AUTHORITY ──────────────────────────────────────────────────── -->
+<section id="authority">
+  <div class="wrap">
+    <p class="section-label reveal">Why Branthetic</p>
+    <div class="authority-grid reveal reveal-d1">
+      <div class="auth-cell">
+        <div class="auth-num">15+</div>
+        <p class="auth-desc">Digital products delivered across fintech, climate tech, and public sector verticals.</p>
+      </div>
+      <div class="auth-cell">
+        <div class="auth-num">₦15M+</div>
+        <p class="auth-desc">Maximum engagement range, serving organisations that require senior-level design partnership.</p>
+      </div>
+      <div class="auth-cell">
+        <div class="auth-num">70%</div>
+        <p class="auth-desc">Of our engagements are institutional — requiring accountability, documentation, and structured delivery.</p>
+      </div>
+      <div class="auth-cell">
+        <div class="auth-num">100%</div>
+        <p class="auth-desc">Of our projects close with full design documentation: component libraries, usage guidelines, and governance notes.</p>
+      </div>
+    </div>
+    <p class="authority-copy reveal">We are not a generalist agency. We are a focused studio that has deliberately chosen to work at the intersection of institutional complexity and product systems — because that is where design has the most structural consequence.</p>
+  </div>
+</section>
+
+<!-- ── PROCESS ───────────────────────────────────────────────────── -->
+<section id="process">
+  <div class="wrap">
+    <p class="section-label reveal">Our Engagement Model</p>
+    <h2 class="section-title reveal reveal-d1">Four phases.<br><em style="font-style:italic;color:var(--blue)">No shortcuts.</em></h2>
+    <p class="section-intro reveal reveal-d2">Every Branthetic engagement follows a structured four-phase model. Phases are not flexible — they exist because structured delivery produces better systems, not faster ones.</p>
+    <div class="process-grid reveal reveal-d3">
+      <div class="process-step">
+        <div class="step-num">Phase 01</div>
+        <h3 class="step-title">Discovery &amp; Alignment</h3>
+        <p class="step-desc">A structured audit of your organisation's product or brand context. We map what exists, what is missing, and what must be built. No design begins before alignment is documented and signed off.</p>
+      </div>
+      <div class="process-step">
+        <div class="step-num">Phase 02</div>
+        <h3 class="step-title">Systems Architecture</h3>
+        <p class="step-desc">Before interfaces are designed, the system is defined. We establish information architecture, user flows, content hierarchy, and component logic. This phase produces the structural blueprint for everything that follows.</p>
+      </div>
+      <div class="process-step">
+        <div class="step-num">Phase 03</div>
+        <h3 class="step-title">Design &amp; Engineering</h3>
+        <p class="step-desc">Interfaces are designed within the system constraints established in Phase 02. Every screen, every component, every state is designed — not approximated. Where applicable, front-end engineering runs in parallel.</p>
+      </div>
+      <div class="process-step">
+        <div class="step-num">Phase 04</div>
+        <h3 class="step-title">Documentation &amp; Handoff</h3>
+        <p class="step-desc">Every engagement closes with full design documentation: component libraries, usage guidelines, technical specifications, and governance notes. We do not hand off files — we hand off operating manuals.</p>
+      </div>
+    </div>
+    <div class="process-note reveal">
+      <strong>Timeline commitment:</strong> Clarity on timeline is established in Phase 01 and is a binding commitment — not an estimate. Product engagements run 8–16 weeks. Brand system engagements run 6–12 weeks.
+    </div>
+  </div>
+</section>
+
+<!-- ── OBJECTIONS ────────────────────────────────────────────────── -->
+<section id="questions">
+  <div class="wrap">
+    <p class="section-label reveal">Common Questions</p>
+    <h2 class="section-title reveal reveal-d1" style="margin-bottom:48px;">Answered directly.</h2>
+    <div class="objection-list">
+      <div class="objection reveal">
+        <div class="obj-q">"We already have an in-house design team."</div>
+        <div class="obj-a">We are not a replacement — we are a structural layer. Most of our institutional clients have internal teams that handle execution. What they lack is the systems architecture that makes execution consistent, scalable, and transferable. We build the operating framework that your team works within.</div>
+      </div>
+      <div class="objection reveal">
+        <div class="obj-q">"Your engagement costs are beyond our current budget."</div>
+        <div class="obj-a">Branthetic's minimum engagement is ₦3M. This reflects the cost of structured, senior-level thinking applied to complex systems — not the cost of design output. If your organisation needs quick, inexpensive design work, we are likely not the right partner. We would rather be clear about this now than begin a conversation that doesn't serve either party.</div>
+      </div>
+      <div class="objection reveal">
+        <div class="obj-q">"Can we start with a smaller scope to test the relationship?"</div>
+        <div class="obj-a">In specific circumstances, we offer structured advisory sessions as a first engagement. These sessions are paid, scoped, and outcome-defined. If you are unsure whether a full engagement is appropriate, a strategy session is the correct first step — not a reduced-scope project.</div>
+      </div>
+      <div class="objection reveal">
+        <div class="obj-q">"How long do engagements typically take?"</div>
+        <div class="obj-a">Product design engagements typically run 8–16 weeks. Brand system engagements run 6–12 weeks. Advisory engagements are scoped independently. Timeline clarity is established in Phase 01 and treated as a binding commitment on both sides.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FINAL CTA ──────────────────────────────────────────────────── -->
+<section id="cta">
+  <div class="wrap">
+    <p class="section-label cta-label reveal" style="color:rgba(255,255,255,0.25);display:flex;align-items:center;gap:12px;">
+      <span style="display:block;width:24px;height:1px;background:rgba(255,255,255,0.2);flex-shrink:0;"></span>
+      Begin a Conversation
+    </p>
+    <p class="cta-scarcity reveal reveal-d1">We accept a limited number of new engagements each quarter</p>
+    <h2 class="cta-headline reveal reveal-d2">Building something that<br>cannot afford to look <em>provisional?</em></h2>
+    <p class="cta-sub reveal reveal-d3">A strategy call is 45 minutes. Structured, not exploratory. We review your challenge, confirm whether Branthetic is the right fit, and define a clear path forward.</p>
+    <a href="#contact" class="btn-primary-white reveal reveal-d4">
+      Schedule a Strategy Call
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- ── CONTACT / FORM ─────────────────────────────────────────────── -->
+<section id="contact">
+  <div class="wrap">
+    <p class="section-label reveal">Start a Project</p>
+    <h2 class="section-title reveal reveal-d1">Project Brief</h2>
+    <div class="form-wrap">
+      <div class="form-left reveal reveal-d2">
+        <p class="form-context">We work with a small number of organisations at a time. This brief helps us understand your context and confirm that an engagement is appropriate for both parties.</p>
+        <p class="form-context">This is not a form — it is the first step in a structured engagement.</p>
+        <div class="form-mandate">
+          We review all submissions<br>
+          within 2 business days.<br><br>
+          If your brief suggests a strong<br>
+          fit, we will contact you directly<br>
+          to schedule a strategy call.<br><br>
+          We respond to every submission<br>
+          — with a decision, not an auto-reply.
+        </div>
+      </div>
+      <form class="reveal reveal-d3" onsubmit="handleSubmit(event)">
+        <div class="form-field">
+          <label for="org">01 — Organisation Name</label>
+          <input type="text" id="org" name="org" placeholder="Full legal or operating name" required />
+        </div>
+        <div class="form-field">
+          <label for="industry">02 — Industry / Sector</label>
+          <input type="text" id="industry" name="industry" placeholder="e.g. Fintech, Climate Tech, Public Sector" required />
+        </div>
+        <div class="form-field">
+          <label>03 — Project Type</label>
+          <div class="checkbox-group">
+            <label class="check-opt"><input type="checkbox" name="type" value="product" /> Product Design &amp; Engineering</label>
+            <label class="check-opt"><input type="checkbox" name="type" value="brand" /> Institutional Brand System</label>
+            <label class="check-opt"><input type="checkbox" name="type" value="advisory" /> Strategic Advisory</label>
+            <label class="check-opt"><input type="checkbox" name="type" value="unsure" /> Not sure yet — I need a scoping conversation</label>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>04 — Budget Range</label>
+          <p class="budget-note">Branthetic's engagements begin at ₦3,000,000.</p>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="budget" value="3-5" required /> ₦3M – ₦5M</label>
+            <label class="radio-opt"><input type="radio" name="budget" value="5-10" /> ₦5M – ₦10M</label>
+            <label class="radio-opt"><input type="radio" name="budget" value="10-15" /> ₦10M – ₦15M</label>
+            <label class="radio-opt"><input type="radio" name="budget" value="15+" /> ₦15M+</label>
+            <label class="radio-opt"><input type="radio" name="budget" value="unconfirmed" /> Budget not yet confirmed</label>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="timeline">05 — Desired Start Timeline</label>
+          <input type="text" id="timeline" name="timeline" placeholder="e.g. Immediately, Q3 2025, Flexible within 3 months" />
+        </div>
+        <div class="form-field">
+          <label>06 — Are You the Decision-Maker?</label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="decision" value="yes" required /> Yes — I have full authority to commission this project</label>
+            <label class="radio-opt"><input type="radio" name="decision" value="rep" /> No — I am a representative. The decision-maker is aware</label>
+            <label class="radio-opt"><input type="radio" name="decision" value="exploratory" /> No — This is an exploratory inquiry on my initiative</label>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="challenge">07 — Describe the Challenge</label>
+          <textarea id="challenge" name="challenge" placeholder="In 2–5 sentences: what are you building, and what is the core design or product challenge you need structured support with?" rows="4"></textarea>
+        </div>
+        <div class="form-field">
+          <label for="name">08 — Your Name &amp; Role</label>
+          <input type="text" id="name" name="name" placeholder="Full name and title" required />
+        </div>
+        <div class="form-field">
+          <label for="email">09 — Work Email Address</label>
+          <input type="email" id="email" name="email" placeholder="Institutional or corporate email preferred" required />
+        </div>
+        <button type="submit" class="submit-btn">Submit Project Brief →</button>
+        <p class="form-response-note">We respond to every submission within 2 business days — with a decision, not an auto-reply.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ────────────────────────────────────────────────────── -->
+<footer>
+  <div class="wrap">
+    <div class="footer-inner">
+      <span class="footer-logo">Branthetic · Lagos</span>
+      <div class="footer-links">
+        <a href="#serve">Services</a>
+        <a href="#work">Work</a>
+        <a href="#process">Process</a>
+        <a href="#contact">Start a Project</a>
+      </div>
+      <span class="footer-copy">© 2025 Branthetic Design Studio</span>
+    </div>
+  </div>
+</footer>
+
+<!-- Success modal -->
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(12,12,15,0.85);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:#fff;padding:64px;max-width:480px;width:90%;text-align:center;">
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--blue);letter-spacing:0.2em;margin-bottom:24px;">BRIEF RECEIVED</div>
+    <h3 style="font-family:var(--font-display);font-size:32px;color:var(--ink);margin-bottom:16px;">Thank you.</h3>
+    <p style="font-size:14px;color:var(--ink-mid);line-height:1.75;margin-bottom:32px;">We will review your brief and respond within 2 business days — with a decision, not an auto-reply.</p>
+    <button onclick="document.getElementById('modal').style.display='none'" style="background:var(--blue);color:#fff;border:none;padding:14px 32px;font-size:14px;font-family:var(--font-body);cursor:pointer;letter-spacing:0.04em;">Close</button>
+  </div>
+</div>
+
+<script>
+  // ── CURSOR ───────────────────────────────────────────────────────
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cursor.style.left = mx + 'px'; cursor.style.top = my + 'px'; });
+  (function animateRing() {
+    rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animateRing);
+  })();
+  document.querySelectorAll('a, button, .serve-card, .case-card, .process-step').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.style.width = '20px'; cursor.style.height = '20px'; ring.style.width = '56px'; ring.style.height = '56px'; ring.style.opacity = '0.25'; });
+    el.addEventListener('mouseleave', () => { cursor.style.width = '10px'; cursor.style.height = '10px'; ring.style.width = '36px'; ring.style.height = '36px'; ring.style.opacity = '0.5'; });
+  });
+
+  // ── SCROLL REVEAL ────────────────────────────────────────────────
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ── NAV SCROLL ──────────────────────────────────────────────────
+  window.addEventListener('scroll', () => {
+    document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  // ── FORM SUBMIT ──────────────────────────────────────────────────
+  function handleSubmit(e) {
+    e.preventDefault();
+    const modal = document.getElementById('modal');
+    modal.style.display = 'flex';
+    e.target.reset();
+  }
+
+  // Trigger hero reveals immediately
+  setTimeout(() => {
+    document.querySelectorAll('#hero .reveal').forEach(el => el.classList.add('visible'));
+  }, 100);
+</script>
+</body>
+</html>
